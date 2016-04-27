@@ -1,0 +1,4 @@
+Flask
+libvirt-python
+prometheus_client
+six
