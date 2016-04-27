@@ -25,7 +25,6 @@ class Collector:
             domainStats['uuid'] = domainUUID
             domainStats['name'] = domainName
             domainStats['memory'] = domain.memoryStats()
-            # These values are counters:
-            # domainStats['cpu'] = domain.getCPUStats(True)[0]
+            domainStats['cpu'] = domain.getCPUStats(True)[0]
             stats.append(domainStats)
         return stats
