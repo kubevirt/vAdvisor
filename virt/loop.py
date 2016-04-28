@@ -177,7 +177,11 @@ class virEventLoopPure:
                     sleep = (next - now) / 1000.0
 
             debug("Poll with a sleep of %d" % sleep)
-            events = self.poll.poll(sleep)
+            # gevent.select seems to interpret -1 differnt than select
+            if sleep != -1:
+                events = self.poll.poll(sleep)
+            else:
+                events = self.poll.poll()
 
             # Dispatch any file handle events that occurred
             for (fd, revents) in events:
