@@ -406,3 +406,9 @@ def virEventLoopPureRegister():
 def virEventLoopPureRun():
     global eventLoop
     eventLoop.run_loop()
+
+
+def virEventLoopPureStop():
+    global eventLoop
+    eventLoop.quit = True
+    eventLoop.interrupt()

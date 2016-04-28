@@ -8,12 +8,17 @@ class Collector:
         self._conn = None
 
     def collect(self):
+        try:
+            return self._collect()
+        except Exception as e:
+            print('Failed to collect metrics from libvirt: {0}'.format(e))
+            self._conn = None
+            raise
+
+    def _collect(self):
         stats = []
         if not self._conn:
             self._conn = libvirt.openReadOnly(self._con_str)
-        if not self._conn:
-            print('Failed to open connection to the hypervisor')
-            return None
         domainIDs = self._conn.listDomainsID()
         if not domainIDs:
             print('Failed to get list of domains')

@@ -35,13 +35,13 @@ class LibvirtEventBroker(Thread):
         libvirt.registerErrorHandler(error_handler, self)
 
         while True:
-            conn = libvirt.openReadOnly(self._con_str)
-            if not conn:
-                print('Failed to open connection to the hypervisor')
+            try:
+                conn = libvirt.openReadOnly(self._con_str)
+            except Exception as e:
+                print('Failed to connect to libvirt: {0}'.format(e))
                 sleep(5)
                 continue
-            # XXX: This does not really stop the event loop when an error
-            # occurs
+
             conn.registerCloseCallback(connection_close_callback, self)
             conn.domainEventRegister(lifecycle_callback, self)
             loop.virEventLoopPureRun()
@@ -49,8 +49,9 @@ class LibvirtEventBroker(Thread):
 
 def connection_close_callback(conn, reason, opaque):
     reasonStrings = ("Error", "End-of-file", "Keepalive", "Client",)
-    print("myConnectionCloseCallback: %s: %s" %
+    print("Connection to libvirt unexpectedly closed: %s: %s" %
           (conn.getURI(), reasonStrings[reason]))
+    loop.virEventLoopPureStop()
 
 
 def error_handler(unused, error, listener):
