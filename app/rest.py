@@ -16,7 +16,7 @@ def hello_world():
 
 @app.route('/v1.0/vms')
 def getVMStats():
-    return json.dumps(Collector().collect())
+    return json.dumps(app.collector.collect())
 
 
 @app.route('/v1.0/events')
@@ -45,4 +45,5 @@ def make_rest_app():
     g = Greenlet(broker.run)
     g.start()
     app.eventBroker = broker
+    app.collector = Collector()
     return app
