@@ -1,8 +1,8 @@
 from prometheus_client import REGISTRY
-from prometheus import LibvirtCollector, make_wsgi_app
-from wsgiref.simple_server import make_server
+from app.prometheus import LibvirtCollector, make_wsgi_app
 
-from rest import make_rest_app
+from app.rest import make_rest_app
+from gevent import pywsgi
 
 
 def assemble_app():
@@ -20,7 +20,7 @@ def assemble_app():
 
 def run():
     REGISTRY.register(LibvirtCollector())
-    httpd = make_server('', 8181, assemble_app())
+    httpd = pywsgi.WSGIServer(('', 8181), assemble_app())
     httpd.serve_forever()
 
 if __name__ == '__main__':

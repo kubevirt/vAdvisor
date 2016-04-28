@@ -1,7 +1,7 @@
 from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 from prometheus_client.exposition import CONTENT_TYPE_LATEST
-from libvirt_collector import Collector
+from virt.collector import Collector
 import six
 
 
