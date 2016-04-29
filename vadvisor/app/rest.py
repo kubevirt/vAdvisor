@@ -1,13 +1,14 @@
-from flask import Flask, Response
-from virt.collector import Collector
+import logging
 import json
 
-from virt.event import LibvirtEventBroker
+from flask import Flask, Response
 from gevent import Greenlet, queue
-from wsgigzip import gzip
 from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from prometheus_client import REGISTRY, generate_latest
-import logging
+from wsgigzip import gzip
+
+from ..virt.collector import Collector
+from ..virt.event import LibvirtEventBroker
 
 
 app = Flask(__name__)

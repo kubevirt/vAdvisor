@@ -1,6 +1,7 @@
-from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
-from virt.collector import Collector
 import six
+from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
+
+from ..virt.collector import Collector
 
 
 class Subtree:

@@ -1,8 +1,8 @@
-from prometheus_client import REGISTRY
-from app.prometheus import LibvirtCollector
-
-from app.rest import make_rest_app
 from gevent import pywsgi
+from prometheus_client import REGISTRY
+
+from .app.prometheus import LibvirtCollector
+from .app.rest import make_rest_app
 
 
 def run():

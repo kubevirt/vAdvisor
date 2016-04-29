@@ -1,10 +1,11 @@
 import libvirt
-import loop
-from threading import Thread
-from gevent import sleep
 import time
-from logging import debug, error
 
+from gevent import sleep
+from logging import debug, error
+from threading import Thread
+
+from . import loop
 
 class LibvirtEventBroker(Thread):
 

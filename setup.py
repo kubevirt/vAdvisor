@@ -25,11 +25,11 @@ setup(name='vAdvisor',
       author_email='roman@redhat.at',
       url='',
       license="ASL2.0",
-      py_modules=['vadvisor'],
-      packages=[],
+      py_modules=[],
+      packages=['vadvisor', 'vadvisor/app', 'vadvisor/virt'],
       cmdclass={'test': PyTest},
       tests_require=['pytest'],
       entry_points="""
           [console_scripts]
-              vAdvisor=vadvisor:run
+              vAdvisor=vadvisor.vadvisor:run
       """)
