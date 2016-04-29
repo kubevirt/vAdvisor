@@ -2,5 +2,5 @@ Flask
 libvirt-python
 prometheus_client
 six
-gevent
+gevent >= 1.1.0
 wsgigzip
