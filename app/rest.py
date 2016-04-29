@@ -7,6 +7,7 @@ from gevent import Greenlet, queue
 from wsgigzip import gzip
 from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from prometheus_client import REGISTRY, generate_latest
+import logging
 
 
 app = Flask(__name__)
@@ -55,10 +56,21 @@ def getPromMetrics():
 
 
 def make_rest_app():
+    # set up logging
+    if not app.debug:
+        stream_handler = logging.StreamHandler()
+        stream_handler.setLevel(logging.ERROR)
+        app.logger.addHandler(stream_handler)
+
+    # start libvirt event broker
     broker = LibvirtEventBroker()
     g = Greenlet(broker.run)
     g.start()
     app.eventBroker = broker
+
+    # Attach libvirt metrics collector
     app.collector = Collector()
+
+    # Add gzip support
     mime_types = ['application/json', 'text/plain']
     return gzip(mime_types=mime_types, compress_level=9)(app)

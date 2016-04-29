@@ -3,14 +3,7 @@ import loop
 from threading import Thread
 from gevent import sleep
 import time
-
-do_debug = False
-
-
-def debug(msg):
-    global do_debug
-    if do_debug:
-        print(msg)
+from logging import debug, error
 
 
 class LibvirtEventBroker(Thread):
@@ -38,7 +31,7 @@ class LibvirtEventBroker(Thread):
             try:
                 conn = libvirt.openReadOnly(self._con_str)
             except Exception as e:
-                print('Failed to connect to libvirt: {0}'.format(e))
+                error(e)
                 sleep(5)
                 continue
 
@@ -49,13 +42,15 @@ class LibvirtEventBroker(Thread):
 
 def connection_close_callback(conn, reason, opaque):
     reasonStrings = ("Error", "End-of-file", "Keepalive", "Client",)
-    print("Connection to libvirt unexpectedly closed: %s: %s" %
+    error("Connection to libvirt unexpectedly closed: %s: %s" %
           (conn.getURI(), reasonStrings[reason]))
     loop.virEventLoopPureStop()
+    if conn is not None:
+        conn.close()
 
 
 def error_handler(unused, error, listener):
-    print(error)
+    error(error)
 
 
 def lifecycle_callback(connection, domain, event, detail, listener):

@@ -10,8 +10,10 @@ class Collector:
     def collect(self):
         try:
             return self._collect()
-        except Exception as e:
-            print('Failed to collect metrics from libvirt: {0}'.format(e))
+        except Exception:
+            # print('Failed to collect metrics from libvirt: {0}'.format(e))
+            if self._conn is not None:
+                self._conn.close()
             self._conn = None
             raise
 

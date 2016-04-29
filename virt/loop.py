@@ -6,14 +6,8 @@ import libvirt
 from gevent import select
 import errno
 import time
+from logging import debug
 
-do_debug = False
-
-
-def debug(msg):
-    global do_debug
-    if do_debug:
-        print(msg)
 
 #
 # This general purpose event loop will support waiting for file handle
