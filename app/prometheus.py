@@ -1,19 +1,6 @@
-from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
-from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from virt.collector import Collector
-from wsgigzip import gzip
 import six
-
-
-def make_wsgi_app():
-    @gzip()
-    def prometheus_app(environ, start_response):
-        status = "200 OK"
-        headers = [("Content-type", CONTENT_TYPE_LATEST)]
-        start_response(status, headers)
-        return [generate_latest(REGISTRY)]
-    return prometheus_app
 
 
 class Subtree:
