@@ -3,3 +3,4 @@ libvirt-python
 prometheus_client
 six
 gevent
+wsgigzip

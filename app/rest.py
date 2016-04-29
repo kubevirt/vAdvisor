@@ -1,9 +1,10 @@
-from flask import Flask
+from flask import Flask, Response
 from virt.collector import Collector
 import json
 
 from virt.event import LibvirtEventBroker
 from gevent import Greenlet, queue
+from wsgigzip import gzip
 
 
 app = Flask(__name__)
@@ -16,7 +17,7 @@ def hello_world():
 
 @app.route('/v1.0/vms')
 def getVMStats():
-    return json.dumps(app.collector.collect())
+    return Response(json.dumps(app.collector.collect()), mimetype='application/json')
 
 
 @app.route('/v1.0/events')
@@ -46,4 +47,5 @@ def make_rest_app():
     g.start()
     app.eventBroker = broker
     app.collector = Collector()
-    return app
+    mime_types = ['application/json']
+    return gzip(mime_types=mime_types, compress_level=9)(app)
