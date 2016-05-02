@@ -1,4 +1,6 @@
 language: python
+before_install:
+  - sudo apt-get install -y libvirt-dev
 python:
   - "2.7"
   - "3.4"
