@@ -1,5 +1,6 @@
 import libvirt
 from xml.etree import ElementTree
+import time
 
 
 class Collector:
@@ -70,5 +71,6 @@ class Collector:
                 'interfaces': interfaces
             }
             domainStats['diskio'] = disks
+            domainStats['timestamp'] = time.time()
             stats.append(domainStats)
         return stats
