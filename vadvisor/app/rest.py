@@ -19,12 +19,12 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/v1.0/vms')
+@app.route('/api/v1.0/vms')
 def getVMStats():
     return Response(json.dumps(app.collector.collect()), mimetype='application/json')
 
 
-@app.route('/v1.0/events')
+@app.route('/api/v1.0/events')
 def getVmEvents():
     def stream(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/event-stream')])

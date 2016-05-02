@@ -27,8 +27,8 @@ VM runtime metrics are exposed at `/metrics`.
 
 ### Polling metrics
 
-VM runtime metrics are exposed at `/v1.0/vms`.
+VM runtime metrics are exposed at `/api/v1.0/vms`.
 
 ### Event stream
 
-VM lifecycle changes can be monitored at `/v1.0/events`.
+VM lifecycle changes can be monitored at `/api/v1.0/events`.

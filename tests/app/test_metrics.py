@@ -20,6 +20,6 @@ def test_metrics(app):
 
 
 def test_vms(app):
-    resp = app.get("/v1.0/vms")
+    resp = app.get("/api/v1.0/vms")
     assert resp.status_int == 200
     assert resp.json == []
