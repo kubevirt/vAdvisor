@@ -1,8 +1,14 @@
+sudo: required
+dist: trusty
 language: python
 before_install:
-  - sudo apt-get install -y libvirt-dev
-python:
-  - "2.7"
-  - "3.4"
+  - sudo apt-get install -y $DEPS
 install: "pip install -r requirements-dev.txt"
 script: python setup.py test --addopts '--cov vadvisor'
+matrix:
+  include:
+    - python: "2.7"
+      env: DEPS="pkg-config python-dev libvirt-dev"
+    - python: "3.4"
+      env: DEPS="pkg-config libvirt-dev python3-dev"
+
