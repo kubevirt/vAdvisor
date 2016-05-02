@@ -1,0 +1,10 @@
+Flask
+libvirt-python
+prometheus_client
+six
+gevent >= 1.1.0
+wsgigzip >= 0.1.4
+WebTest
+pytest
+pytest-cov
+mock

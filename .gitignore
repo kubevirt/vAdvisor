@@ -2,3 +2,7 @@
 .ropeproject
 *.swp
 *.egg-info
+.cache
+.coverage
+.tox
+.egg*
