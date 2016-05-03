@@ -26,13 +26,13 @@ class InMemoryStore:
             for k in self.metrics:
                 result[k] = {
                     "spec": {"uuid": k},
-                    "metrics": self.metrics[k].get(elements=200)
+                    "metrics": self.metrics[k].get(elements=self.seconds * 2)
                 }
         else:
             metrics = self.metrics.get(filter)
             if metrics:
                 result[filter] = {
                     "spec": {"uuid": filter},
-                    "metrics": metrics.get(elements=200)
+                    "metrics": metrics.get(elements=self.seconds * 2)
                 }
         return result

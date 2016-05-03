@@ -25,8 +25,21 @@ def hello_world():
 
 @app.route('/api/v1.0/vms')
 def getAllVMStats():
+    if request.args.get('live') == 'true':
+        data = {}
+        for domain in app.collector.collect():
+            uuid = domain['uuid']
+            del domain['uuid']
+            del domain['name']
+            data[uuid] = {
+                'spec': {'uuid': uuid},
+                'metrics': [domain]
+            }
+    else:
+        data = app.metricStore.get()
+
     return Response(
-        json.dumps(app.metricStore.get(), default=_datetime_serial),
+        json.dumps(data, default=_datetime_serial),
         mimetype='application/json'
     )
 
@@ -120,12 +133,12 @@ def make_rest_app():
     Greenlet(store_events).start()
 
     # Collect metrics every second and store time in the metrics store
+    app.collector = Collector()
     app.metricStore = MetricStore()
 
     def store_metrics():
-        collector = Collector()
         while True:
-            app.metricStore.put(collector.collect())
+            app.metricStore.put(app.collector.collect())
             sleep(1)
 
     Greenlet(store_metrics).start()
