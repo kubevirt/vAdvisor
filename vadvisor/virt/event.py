@@ -7,6 +7,19 @@ from threading import Thread
 
 from . import loop
 
+
+LIFECYCLE_EVENTS = ("Defined",
+                    "Undefined",
+                    "Started",
+                    "Suspended",
+                    "Resumed",
+                    "Stopped",
+                    "Shutdown",
+                    "PMSuspended",
+                    "Crashed",
+                    )
+
+
 class LibvirtEventBroker(Thread):
 
     def __init__(self, con_str='qemu:///system'):
@@ -66,23 +79,9 @@ def create_event(name, uuid, event, reason):
         'domain_name': name,
         'domain_id': uuid,
         'timestamp': time.time(),
-        'event_type': domEventToString(event),
+        'event_type': LIFECYCLE_EVENTS[event],
         'reason': domDetailToString(event, reason)
     }
-
-
-def domEventToString(event):
-    domEventStrings = ("Defined",
-                       "Undefined",
-                       "Started",
-                       "Suspended",
-                       "Resumed",
-                       "Stopped",
-                       "Shutdown",
-                       "PMSuspended",
-                       "Crashed",
-                       )
-    return domEventStrings[event]
 
 
 def domDetailToString(event, detail):

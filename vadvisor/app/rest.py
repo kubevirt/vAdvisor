@@ -1,14 +1,14 @@
 import logging
 import json
 
-from flask import Flask, Response
+from flask import Flask, Response, request
 from gevent import Greenlet, queue
 from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from prometheus_client import REGISTRY, generate_latest
 from wsgigzip import gzip
 
 from ..virt.collector import Collector
-from ..virt.event import LibvirtEventBroker
+from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
 
 
 app = Flask(__name__)
@@ -28,13 +28,15 @@ def getVMStats():
 def getVmEvents():
     def stream(environ, start_response):
         start_response('200 OK', [('Content-Type', 'text/event-stream')])
+        events = _eventMapper(request.args)
 
         def generator():
             body = queue.Queue()
             app.eventBroker.subscribe(body)
             try:
                 for item in body:
-                    yield json.dumps(item) + '\n'
+                    if 'all' in events or item["event_type"] in events:
+                        yield json.dumps(item) + '\n'
             except Exception as e:
                 app.eventBroker.unsubscribe(body)
                 raise e
@@ -43,6 +45,17 @@ def getVmEvents():
                 raise e
         return generator()
     return stream
+
+
+def _eventMapper(queryParams):
+    events = []
+    if queryParams.get('all_events') == 'true':
+        events.append('all')
+        return events
+    for event in LIFECYCLE_EVENTS:
+        if queryParams.get(event.lower() + "_events") == 'true':
+            events.append(event)
+    return events
 
 
 @app.route('/metrics')
