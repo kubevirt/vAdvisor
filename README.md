@@ -21,13 +21,24 @@ not allow it to access the libvirt socket.
 
 ## Prometheus
 
-VM runtime metrics are exposed at `/metrics`.
+VM runtime metrics are exposed at `/metrics`. When accessing the endpoind a
+live sample of all currently detected VMs will be returned. This is different
+to the metrics REST endpoint below where historical samples for the last minute
+are returned.
 
 ## REST-API
 
 ### Polling metrics
 
-VM runtime metrics are exposed at `/api/v1.0/vms`.
+VM runtime metrics are exposed at `/api/v1.0/vms`. The endpoint returns metrics
+for all discovered VMs.
+
+To query for a specific VM you can the uuid of a VM to the endpoint like this
+`/api/v1.0/vms/<uuid>`.
+
+The result contains raw sample data from the last minute for every VM. Since
+all VMs are sampled every second you will get an array of up to 60 samples per
+VM.
 
 ### Event stream
 

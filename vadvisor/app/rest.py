@@ -4,14 +4,15 @@ from datetime import datetime
 from dateutil import parser
 
 from flask import Flask, Response, request
-from gevent import Greenlet, queue
+from gevent import Greenlet, queue, sleep
 from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from prometheus_client import REGISTRY, generate_latest
 from wsgigzip import gzip
 
 from ..virt.collector import Collector
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
-from ..store.event import InMemoryStore
+from ..store.event import InMemoryStore as EventStore
+from ..store.collector import InMemoryStore as MetricStore
 
 
 app = Flask(__name__)
@@ -23,9 +24,17 @@ def hello_world():
 
 
 @app.route('/api/v1.0/vms')
-def getVMStats():
+def getAllVMStats():
     return Response(
-        json.dumps(app.collector.collect(), default=_datetime_serial),
+        json.dumps(app.metricStore.get(), default=_datetime_serial),
+        mimetype='application/json'
+    )
+
+
+@app.route('/api/v1.0/vms/<uuid>')
+def getVMStats(uuid):
+    return Response(
+        json.dumps(app.metricStore.get(uuid), default=_datetime_serial),
         mimetype='application/json'
     )
 
@@ -100,7 +109,7 @@ def make_rest_app():
     app.eventBroker = broker
 
     # Attach event store to broker
-    app.eventStore = InMemoryStore()
+    app.eventStore = EventStore()
 
     def store_events():
         q = queue.Queue()
@@ -110,8 +119,16 @@ def make_rest_app():
 
     Greenlet(store_events).start()
 
-    # Attach libvirt metrics collector
-    app.collector = Collector()
+    # Collect metrics every second and store time in the metrics store
+    app.metricStore = MetricStore()
+
+    def store_metrics():
+        collector = Collector()
+        while True:
+            app.metricStore.put(collector.collect())
+            sleep(1)
+
+    Greenlet(store_metrics).start()
 
     # Add gzip support
     mime_types = ['application/json', 'text/plain']

@@ -19,8 +19,12 @@ class InMemoryStore:
         self._expire(now)
         self.deque.append(Element(now, data))
 
-    def get(self, start_time=datetime(1970, 1, 1), stop_time=datetime.utcnow(), elements=10):
+    def get(self, start_time=None, stop_time=None, elements=10):
         now = datetime.utcnow()
+        if not start_time:
+            start_time = datetime(1970, 1, 1)
+        if not stop_time:
+            stop_time = now
         self._expire(now)
         events = []
         found = 0
@@ -34,10 +38,17 @@ class InMemoryStore:
                 break
         return events
 
+    def expire(self):
+        now = datetime.utcnow()
+        self._expire(now)
+
     def _expire(self, now):
         lower_bound = now - timedelta(seconds=self.seconds)
         while len(self.deque) > 0 and self.deque[0].timestamp < lower_bound:
             self.deque.popleft()
+
+    def empty(self):
+        return len(self.deque) == 0
 
 
 class Element:
