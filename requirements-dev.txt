@@ -7,4 +7,5 @@ wsgigzip >= 0.1.4
 WebTest
 pytest
 pytest-cov
-mock
+freezegun
+python-dateutil

@@ -35,15 +35,19 @@ VM lifecycle changes can be monitored at `/api/v1.0/events`.
 
 The following query parameters are supported:
 
-| Parameter           | Description                              | Default |
-|---------------------|------------------------------------------|---------|
-|`all_events`         |Return all supported events               | false   |
-|`undefined_events`   |Include delete events                     | false   |
-|`defined_events`     |Include create events                     | false   |
-|`started_events`     |Include start events                      | false   |
-|`suspended_events`   |Include supend events                     | false   |
-|`resumed_events`     |Include resume events                     | false   |
-|`stopped_events`     |Include stop events                       | false   |
-|`shutdown_events`    |Include shutdown events                   | false   |
-|`pmsuspended_events` |Include Power management suspended events | false   |
-|`crashed_events`     |Include crash events                      | false   |
+| Parameter           | Description                                   | Default           |
+|---------------------|-----------------------------------------------|-------------------|
+|`stream`             |Stream events as they occur.                   | false             |
+|`start_time`         |Start time of events to query (`stream=false`) | Beginning of time |
+|`end_time`           |End time of events to query (`stream=false`)   | Now               |
+|`max_events`         |Number of events to return (`stream=false`)    | 10                |
+|`all_events`         |Return all supported events                    | false             |
+|`undefined_events`   |Include delete events                          | false             |
+|`defined_events`     |Include create events                          | false             |
+|`started_events`     |Include start events                           | false             |
+|`suspended_events`   |Include supend events                          | false             |
+|`resumed_events`     |Include resume events                          | false             |
+|`stopped_events`     |Include stop events                            | false             |
+|`shutdown_events`    |Include shutdown events                        | false             |
+|`pmsuspended_events` |Include power management suspended events      | false             |
+|`crashed_events`     |Include crash events                           | false             |

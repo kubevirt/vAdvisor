@@ -1,6 +1,7 @@
 import logging
 import json
 from datetime import datetime
+from dateutil import parser
 
 from flask import Flask, Response, request
 from gevent import Greenlet, queue
@@ -10,6 +11,7 @@ from wsgigzip import gzip
 
 from ..virt.collector import Collector
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
+from ..store.event import InMemoryStore
 
 
 app = Flask(__name__)
@@ -30,16 +32,28 @@ def getVMStats():
 
 @app.route('/api/v1.0/events')
 def getVmEvents():
+    event_filter = _eventMapper(request.args)
+    if request.args.get('stream') != 'true':
+        start_time = parser.parse(request.args.get('start_time', datetime(1970, 1, 1).isoformat()))
+        stop_time = parser.parse(request.args.get('end_time', datetime.utcnow().isoformat()))
+        elements = int(request.args.get('max_events', 10))
+
+        def generator():
+            events = app.eventStore.get(start_time, stop_time, elements)
+            for event in events:
+                if 'all' in event_filter or event["event_type"] in event_filter:
+                    yield json.dumps(event, default=_datetime_serial) + '\n'
+        return Response(generator(), mimetype='application/json')
+
     def stream(environ, start_response):
-        start_response('200 OK', [('Content-Type', 'text/event-stream')])
-        events = _eventMapper(request.args)
+        start_response('200 OK', [('Content-Type', 'application/json')])
 
         def generator():
             body = queue.Queue()
             app.eventBroker.subscribe(body)
             try:
                 for item in body:
-                    if 'all' in events or item["event_type"] in events:
+                    if 'all' in event_filter or item["event_type"] in event_filter:
                         yield json.dumps(item, default=_datetime_serial) + '\n'
             except Exception as e:
                 app.eventBroker.unsubscribe(body)
@@ -82,9 +96,19 @@ def make_rest_app():
 
     # start libvirt event broker
     broker = LibvirtEventBroker()
-    g = Greenlet(broker.run)
-    g.start()
+    Greenlet(broker.run).start()
     app.eventBroker = broker
+
+    # Attach event store to broker
+    app.eventStore = InMemoryStore()
+
+    def store_events():
+        q = queue.Queue()
+        broker.subscribe(q)
+        while True:
+            app.eventStore.put(q.get())
+
+    Greenlet(store_events).start()
 
     # Attach libvirt metrics collector
     app.collector = Collector()
