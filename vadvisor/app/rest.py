@@ -1,5 +1,6 @@
 import logging
 import json
+from datetime import datetime
 
 from flask import Flask, Response, request
 from gevent import Greenlet, queue
@@ -21,7 +22,10 @@ def hello_world():
 
 @app.route('/api/v1.0/vms')
 def getVMStats():
-    return Response(json.dumps(app.collector.collect()), mimetype='application/json')
+    return Response(
+        json.dumps(app.collector.collect(), default=_datetime_serial),
+        mimetype='application/json'
+    )
 
 
 @app.route('/api/v1.0/events')
@@ -36,7 +40,7 @@ def getVmEvents():
             try:
                 for item in body:
                     if 'all' in events or item["event_type"] in events:
-                        yield json.dumps(item) + '\n'
+                        yield json.dumps(item, default=_datetime_serial) + '\n'
             except Exception as e:
                 app.eventBroker.unsubscribe(body)
                 raise e
@@ -88,3 +92,12 @@ def make_rest_app():
     # Add gzip support
     mime_types = ['application/json', 'text/plain']
     return gzip(mime_types=mime_types, compress_level=9)(app)
+
+
+def _datetime_serial(obj):
+
+    if isinstance(obj, datetime):
+        # We should have all timestamps in utc. If not we have a problem
+        serial = obj.isoformat() + "Z"
+        return serial
+    raise TypeError("Type not serializable")

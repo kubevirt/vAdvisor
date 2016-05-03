@@ -1,9 +1,9 @@
 import libvirt
-import time
 
 from gevent import sleep
 from logging import debug, error
 from threading import Thread
+from datetime import datetime
 
 from . import loop
 
@@ -78,7 +78,7 @@ def create_event(name, uuid, event, reason):
     return {
         'domain_name': name,
         'domain_id': uuid,
-        'timestamp': time.time(),
+        'timestamp': datetime.utcnow(),
         'event_type': LIFECYCLE_EVENTS[event],
         'reason': domDetailToString(event, reason)
     }
