@@ -23,7 +23,7 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/api/v1.0/vms')
+@app.route('/api/v1.0/stats')
 def getAllVMStats():
     if request.args.get('live') == 'true':
         data = {}
@@ -31,10 +31,7 @@ def getAllVMStats():
             uuid = domain['uuid']
             del domain['uuid']
             del domain['name']
-            data[uuid] = {
-                'spec': {'uuid': uuid},
-                'metrics': [domain]
-            }
+            data[uuid] = [domain]
     else:
         data = app.metricStore.get()
 
@@ -44,7 +41,7 @@ def getAllVMStats():
     )
 
 
-@app.route('/api/v1.0/vms/<uuid>')
+@app.route('/api/v1.0/stats/<uuid>')
 def getVMStats(uuid):
     return Response(
         json.dumps(app.metricStore.get(uuid), default=_datetime_serial),

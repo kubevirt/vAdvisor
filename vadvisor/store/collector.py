@@ -24,15 +24,9 @@ class InMemoryStore:
         result = {}
         if not filter:
             for k in self.metrics:
-                result[k] = {
-                    "spec": {"uuid": k},
-                    "metrics": self.metrics[k].get(elements=self.seconds * 2)
-                }
+                result[k] = self.metrics[k].get(elements=self.seconds * 2)
         else:
             metrics = self.metrics.get(filter)
             if metrics:
-                result[filter] = {
-                    "spec": {"uuid": filter},
-                    "metrics": metrics.get(elements=self.seconds * 2)
-                }
+                result[filter] = metrics.get(elements=self.seconds * 2)
         return result

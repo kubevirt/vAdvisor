@@ -30,16 +30,16 @@ are returned.
 
 ### Polling metrics
 
-VM runtime metrics are exposed at `/api/v1.0/vms`. The endpoint returns metrics
+VM runtime metrics are exposed at `/api/v1.0/stats`. The endpoint returns metrics
 for all discovered VMs.
 
-The endpoint `/api/v1.0/vms` supports the additional query parameter
+The endpoint `/api/v1.0/stats` supports the additional query parameter
 `live=true` which allows to ask for live samples of all VMs. This can be very
 useful when another service is already periodically monitoring the system and
 you need fresh samples instead of the whole history.
 
 To query for a specific VM you can the uuid of a VM to the endpoint like this
-`/api/v1.0/vms/<uuid>`.
+`/api/v1.0/stats/<uuid>`.
 
 The result contains raw sample data from the last minute for every VM. Since
 all VMs are sampled every second you will get an array of up to 60 samples per
