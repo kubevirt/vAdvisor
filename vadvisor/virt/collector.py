@@ -25,7 +25,7 @@ class Collector:
             self._conn = libvirt.openReadOnly(self._con_str)
         domainIDs = self._conn.listDomainsID()
         if not domainIDs:
-            print('Failed to get list of domains')
+            return stats
         for domainID in domainIDs:
             domain = self._conn.lookupByID(domainID)
             tree = ElementTree.fromstring(domain.XMLDesc())
