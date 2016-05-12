@@ -2,6 +2,8 @@
 
 VM monitoring application based on WSGI, libvirt, flask and gevent, inspired by cAdvisor. 
 
+[![Build Status](https://travis-ci.org/kubevirt/vAdvisor.svg?branch=master)](https://travis-ci.org/kubevirt/vAdvisor)
+
 ## Run it
 
 To use it on a host with libvirtd running, use the prepared docker image
