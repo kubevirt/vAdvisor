@@ -6,6 +6,7 @@ from threading import Thread
 from datetime import datetime
 
 from . import loop
+from .conn import LibvirtConnection
 
 
 LIFECYCLE_EVENTS = ("Defined",
@@ -22,9 +23,9 @@ LIFECYCLE_EVENTS = ("Defined",
 
 class LibvirtEventBroker(Thread):
 
-    def __init__(self, con_str='qemu:///system'):
+    def __init__(self, conn=LibvirtConnection()):
         Thread.__init__(self)
-        self._con_str = con_str
+        self._conn = conn
         self._subscriptions = set()
 
     def subscribe(self, subscriber):
@@ -43,15 +44,13 @@ class LibvirtEventBroker(Thread):
 
         while True:
             try:
-                conn = libvirt.openReadOnly(self._con_str)
+                with self._conn as conn:
+                    conn.registerCloseCallback(connection_close_callback, self)
+                    conn.domainEventRegister(lifecycle_callback, self)
+                loop.virEventLoopPureRun()
             except Exception as e:
                 error(e)
                 sleep(5)
-                continue
-
-            conn.registerCloseCallback(connection_close_callback, self)
-            conn.domainEventRegister(lifecycle_callback, self)
-            loop.virEventLoopPureRun()
 
 
 def connection_close_callback(conn, reason, opaque):
