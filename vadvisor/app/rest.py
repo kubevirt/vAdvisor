@@ -129,7 +129,7 @@ def make_rest_app():
 
     Greenlet(store_events).start()
 
-    # Collect metrics every second and store time in the metrics store
+    # Collect metrics every second and store them in the metrics store
     app.collector = Collector()
     app.metricStore = MetricStore()
 
