@@ -44,19 +44,17 @@ class Metric:
 class Gauge(Metric):
 
     def process(self, label_keys, labels, value):
-        if not self.metric:
-            self.metric = GaugeMetricFamily(self.name, self.description, labels=label_keys)
-        self.metric.add_metric(labels, value)
-        yield self.metric
+        metric = GaugeMetricFamily(self.name, self.description, labels=label_keys)
+        metric.add_metric(labels, value)
+        yield metric
 
 
 class Counter(Metric):
 
     def process(self, label_keys, labels, value):
-        if not self.metric:
-            self.metric = CounterMetricFamily(self.name, self.description, labels=label_keys)
-        self.metric.add_metric(labels, value)
-        yield self.metric
+        metric = CounterMetricFamily(self.name, self.description, labels=label_keys)
+        metric.add_metric(labels, value)
+        yield metric
 
 
 class LibvirtCollector:
