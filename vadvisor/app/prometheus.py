@@ -93,8 +93,8 @@ class LibvirtCollector:
         Counter('vm_cpu_total', 'cpu_time', ''),
     ])
 
-    def __init__(self):
-        self.collector = Collector()
+    def __init__(self, collector=Collector()):
+        self.collector = collector
 
     def collect(self):
         stats = self.collector.collect()

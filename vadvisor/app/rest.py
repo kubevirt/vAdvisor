@@ -9,6 +9,7 @@ from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from prometheus_client import REGISTRY, generate_latest
 from wsgigzip import gzip
 
+from ..app.prometheus import LibvirtCollector
 from ..virt.collector import Collector
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
 from ..store.event import InMemoryStore as EventStore
@@ -129,8 +130,13 @@ def make_rest_app():
 
     Greenlet(store_events).start()
 
-    # Collect metrics every second and store them in the metrics store
+    # Create metric collector
     app.collector = Collector()
+
+    # Register prometheus metrics
+    REGISTRY.register(LibvirtCollector(app.collector))
+
+    # Collect metrics every second and store them in the metrics store
     app.metricStore = MetricStore()
 
     def store_metrics():
