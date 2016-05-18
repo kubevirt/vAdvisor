@@ -5,7 +5,9 @@ from datetime import datetime
 from dateutil import parser
 from uuid import UUID
 
-from flask import Flask, Response, request
+import libvirt
+
+from flask import Flask, Response, request, abort
 from gevent import Greenlet, queue, sleep
 from prometheus_client.exposition import CONTENT_TYPE_LATEST
 from prometheus_client import REGISTRY, generate_latest
@@ -52,10 +54,15 @@ def getVMSpecs(id):
     except Exception:
         uuid = None
     with app.conn as conn:
-        if uuid:
-            domain = conn.lookupByUUIDString(id)
-        else:
-            domain = conn.lookupByName(id)
+        try:
+            if uuid:
+                domain = conn.lookupByUUIDString(id)
+            else:
+                domain = conn.lookupByName(id)
+        except libvirt.libvirtError as e:
+            if e.get_error_code() == libvirt.VIR_ERR_NO_DOMAIN:
+                abort(404)
+            raise e
         data = parse_domain_xml(domain.XMLDesc())
 
     return Response(
@@ -84,8 +91,11 @@ def getAllVMStats():
 
 @app.route('/api/v1.0/stats/<uuid>')
 def getVMStats(uuid):
+    data = app.metricStore.get(uuid)
+    if not data:
+        abort(404)
     return Response(
-        json.dumps(app.metricStore.get(uuid), default=_datetime_serial),
+        json.dumps(data, default=_datetime_serial),
         mimetype='application/json'
     )
 
