@@ -1,7 +1,9 @@
-import logging
 import json
+import logging
+
 from datetime import datetime
 from dateutil import parser
+from uuid import UUID
 
 from flask import Flask, Response, request
 from gevent import Greenlet, queue, sleep
@@ -11,7 +13,9 @@ from wsgigzip import gzip
 
 from ..app.prometheus import LibvirtCollector
 from ..virt.collector import Collector
+from ..virt.conn import LibvirtConnection
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
+from ..virt.parser import parse_domain_xml
 from ..store.event import InMemoryStore as EventStore
 from ..store.collector import InMemoryStore as MetricStore
 
@@ -22,6 +26,42 @@ app = Flask(__name__)
 @app.route('/')
 def hello_world():
     return 'Hello World!'
+
+
+@app.route('/api/v1.0/specs')
+def getAllVMSpecs():
+    data = []
+    with app.conn as conn:
+        domainIDs = conn.listDomainsID()
+        if domainIDs:
+            for domainID in domainIDs:
+                domain = conn.lookupByID(domainID)
+                data.append(parse_domain_xml(domain.XMLDesc()))
+
+    return Response(
+        json.dumps(data, default=_datetime_serial),
+        mimetype='application/json'
+    )
+
+
+@app.route('/api/v1.0/specs/<id>')
+def getVMSpecs(id):
+    data = None
+    try:
+        uuid = UUID(id)
+    except Exception:
+        uuid = None
+    with app.conn as conn:
+        if uuid:
+            domain = conn.lookupByUUIDString(id)
+        else:
+            domain = conn.lookupByName(id)
+        data = parse_domain_xml(domain.XMLDesc())
+
+    return Response(
+        json.dumps(data, default=_datetime_serial),
+        mimetype='application/json'
+    )
 
 
 @app.route('/api/v1.0/stats')
@@ -131,7 +171,8 @@ def make_rest_app():
     Greenlet(store_events).start()
 
     # Create metric collector
-    app.collector = Collector()
+    app.conn = LibvirtConnection()
+    app.collector = Collector(app.conn)
 
     # Register prometheus metrics
     REGISTRY.register(LibvirtCollector(app.collector))

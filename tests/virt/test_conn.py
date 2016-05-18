@@ -18,7 +18,7 @@ def conn():
             if not isinstance(index, int):
                 raise AttributeError()
             if not self.init:
-                raise libvirt.libvirtError(0)
+                raise err()
 
     c = LibvirtConnection()
     c._conn = Conn()
@@ -28,11 +28,31 @@ def conn():
 def test_close_on_libvirtError(conn):
     try:
         with conn:
-            raise libvirt.libvirtError(0)
+            raise err()
     except libvirt.libvirtError:
         pass
 
     assert not conn._conn
+
+
+def test_ignore_libvirtError_warnings(conn):
+    try:
+        with conn:
+            raise err(level=libvirt.VIR_ERR_WARNING)
+    except libvirt.libvirtError:
+        pass
+
+    assert conn._conn
+
+
+def test_ignore_no_domain_libvirtError(conn):
+    try:
+        with conn:
+            raise err(libvirt.VIR_ERR_NO_DOMAIN)
+    except libvirt.libvirtError:
+        pass
+
+    assert conn._conn
 
 
 def test_close_on_libvirtError_subclass(conn):
@@ -40,7 +60,7 @@ def test_close_on_libvirtError_subclass(conn):
         with conn:
             class Err(libvirt.libvirtError):
                 pass
-            raise Err(0)
+            raise err(ex=Err(1))
     except libvirt.libvirtError:
         pass
 
@@ -68,3 +88,8 @@ def test_handle_access_on_closed_connection(conn):
         pass
 
     assert not conn._conn
+
+
+def err(no=1, level=libvirt.VIR_ERR_ERROR, ex=libvirt.libvirtError(1)):
+    ex.err = [no, 0, 0, level]
+    return ex

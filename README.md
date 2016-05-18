@@ -69,3 +69,11 @@ The following query parameters are supported:
 |`shutdown_events`    |Include shutdown events                        | false             |
 |`pmsuspended_events` |Include power management suspended events      | false             |
 |`crashed_events`     |Include crash events                           | false             |
+
+### Specifications
+
+VM Specifications are exposed at `/api/v1.0/specs`. It will return an array of
+all discovered VMs with their Libvirt XML specifcations translated into JSON.
+
+To query for a specific VM use the endpoint `/api/v1.0/specs/<id>` where `id`
+can either be the UUID or the name of a VM.
