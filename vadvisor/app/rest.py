@@ -30,7 +30,7 @@ def hello_world():
     return 'Hello World!'
 
 
-@app.route('/api/v1.0/specs')
+@app.route('/api/v1.0/specs/')
 def getAllVMSpecs():
     data = []
     with app.conn as conn:
@@ -71,7 +71,7 @@ def getVMSpecs(id):
     )
 
 
-@app.route('/api/v1.0/stats')
+@app.route('/api/v1.0/stats/')
 def getAllVMStats():
     if request.args.get('live') == 'true':
         data = {}
