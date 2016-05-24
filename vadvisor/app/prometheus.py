@@ -12,11 +12,19 @@ class Subtree:
             self._elements[element.field] = element
         self.field = field
 
-    def process(self, label_keys, labels, domainStats):
+    def process(self, labels, domainStats):
         for field, element in six.iteritems(self._elements):
             if field in domainStats:
-                for metric in element.process(label_keys, labels, domainStats[field]):
-                    yield metric
+                element.process(labels, domainStats[field])
+
+    def reset(self, label_keys):
+        for _, element in six.iteritems(self._elements):
+            element.reset(label_keys)
+
+    def expose(self):
+        for _, element in six.iteritems(self._elements):
+            for metric in element.expose():
+                yield metric
 
 
 class Tree(Subtree):
@@ -28,8 +36,11 @@ class Tree(Subtree):
     def process(self, labels, domainStats):
         for field, element in six.iteritems(self._elements):
             if field in domainStats:
-                for metric in element.process(self._label_keys, labels, domainStats[field]):
-                    yield metric
+                element.process(labels, domainStats[field])
+
+    def reset(self):
+        for _, element in six.iteritems(self._elements):
+            element.reset(self._label_keys)
 
 
 class Metric:
@@ -40,21 +51,26 @@ class Metric:
         self.description = description
         self.metric = None
 
+    def expose(self):
+        yield self.metric
+
 
 class Gauge(Metric):
 
-    def process(self, label_keys, labels, value):
-        metric = GaugeMetricFamily(self.name, self.description, labels=label_keys)
-        metric.add_metric(labels, value)
-        yield metric
+    def process(self, labels, value):
+        self.metric.add_metric(labels, value)
+
+    def reset(self, label_keys):
+        self.metric = GaugeMetricFamily(self.name, self.description, labels=label_keys)
 
 
 class Counter(Metric):
 
-    def process(self, label_keys, labels, value):
-        metric = CounterMetricFamily(self.name, self.description, labels=label_keys)
-        metric.add_metric(labels, value)
-        yield metric
+    def process(self, labels, value):
+        self.metric.add_metric(labels, value)
+
+    def reset(self, label_keys):
+        self.metric = CounterMetricFamily(self.name, self.description, labels=label_keys)
 
 
 class LibvirtCollector:
@@ -97,24 +113,33 @@ class LibvirtCollector:
         self.collector = collector
 
     def collect(self):
+        # Get stats from libvirt
         stats = self.collector.collect()
+
+        # Reset all metrics since the python prometheus library does not
+        # override collected metrics with identical label values
+        for tree in (self._vm, self._interfaces, self._disks, self._cpus):
+            tree.reset()
+
+        # Collect metrics
         for domainStats in stats:
             # VM stats
             labels = [domainStats['uuid']]
-            for metric in self._vm.process(labels, domainStats):
-                yield metric
+            self._vm.process(labels, domainStats)
             # Networking stats
             for interface in domainStats['network']['interfaces']:
                 labels = [domainStats['uuid'], interface['name']]
-                for metric in self._interfaces.process(labels, interface):
-                    yield metric
+                self._interfaces.process(labels, interface)
             # Disk stats
             for disk in domainStats['diskio']:
                 labels = [domainStats['uuid'], disk['name']]
-                for metric in self._disks.process(labels, disk):
-                    yield metric
+                self._disks.process(labels, disk)
             # CPU stats
             for indx, cpu in enumerate(domainStats['cpu']['per_cpu_usage']):
                 labels = [domainStats['uuid'], str(indx)]
-                for metric in self._cpus.process(labels, cpu):
-                    yield metric
+                self._cpus.process(labels, cpu)
+
+        # Yield all collected metrics
+        for tree in (self._vm, self._interfaces, self._disks, self._cpus):
+            for metric in tree.expose():
+                yield metric
