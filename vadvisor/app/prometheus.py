@@ -61,12 +61,12 @@ class LibvirtCollector:
 
     _vm = Tree(['uuid'], [
         Subtree('cpu', [
-            Counter('vm_cpu_time', 'cpu_time', 'Overall VM CPU time'),
-            Counter('vm_cpu_system_time', 'system_time', 'Overall VM System CPU time'),
-            Counter('vm_cpu_user_time', 'user_time', 'Overall VM User CPU time')
+            Counter('vm_cpu_time', 'cpu_time', 'Overall VM CPU time in milliseconds'),
+            Counter('vm_cpu_system_time', 'system_time', 'Overall VM System CPU time in milliseconds'),
+            Counter('vm_cpu_user_time', 'user_time', 'Overall VM User CPU time in milliseconds')
         ]),
         Subtree('memory', [
-            Gauge('vm_memory_actual', 'actual', "VM Memory"),
+            Gauge('vm_memory_actual', 'actual', "VM Memory in bytes"),
         ])
     ])
 
@@ -82,15 +82,15 @@ class LibvirtCollector:
     ])
 
     _disks = Tree(['uuid', 'device'], [
-        Counter('vm_disk_write_requests_total', 'wr_req', ''),
-        Counter('vm_disk_write_bytes_total', 'wr_bytes', ''),
-        Counter('vm_disk_read_requests_total', 'rd_req', ''),
-        Counter('vm_disk_read_bytes_total', 'rd_bytes', ''),
+        Counter('vm_disk_write_requests_total', 'wr_req', 'Cumulative count of disk write requests'),
+        Counter('vm_disk_write_bytes_total', 'wr_bytes', 'Cumulative count of disk writes in bytes'),
+        Counter('vm_disk_read_requests_total', 'rd_req', 'Cumulative count of disk read requests'),
+        Counter('vm_disk_read_bytes_total', 'rd_bytes', 'Cumulative count of disk reads in bytes'),
     ])
 
     _cpus = Tree(['uuid', 'cpu'], [
-        Counter('vm_vcpu_total', 'vcpu_time', ''),
-        Counter('vm_cpu_total', 'cpu_time', ''),
+        Counter('vm_vcpu_total', 'vcpu_time', 'Overall CPU time on the virtual CPU in milliseconds'),
+        Counter('vm_cpu_total', 'cpu_time', 'Overall CPU time on the host CPU in milliseconds'),
     ])
 
     def __init__(self, collector=Collector()):
