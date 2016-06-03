@@ -1,11 +1,21 @@
-from vadvisor.app.rest import make_rest_app
+import vadvisor
 import pytest
 import webtest
+from vadvisor.store.collector import InMemoryStore as MetricStore
 
 
 @pytest.fixture
 def _app():
-    return make_rest_app()
+
+    class Collector:
+
+        def collect(self):
+            return []
+
+    app = vadvisor.app.rest.app
+    app.collector = Collector()
+    app.metricStore = MetricStore()
+    return app
 
 
 @pytest.fixture
