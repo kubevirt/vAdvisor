@@ -39,9 +39,9 @@ class Collector:
                     diskStats = domain.blockStats(name)
                     disks.append({
                         'name': name,
-                        'rd_req': diskStats[0],
+                        'rd_reqs': diskStats[0],
                         'rd_bytes': diskStats[1],
-                        'wr_req': diskStats[2],
+                        'wr_reqs': diskStats[2],
                         'wr_bytes': diskStats[3],
                         'errors': diskStats[4],
                     })
