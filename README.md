@@ -8,6 +8,8 @@ VM monitoring application based on WSGI, libvirt, flask and gevent, inspired by 
 
 To use it on a host with libvirtd running, use the prepared docker image
 
+### Debian/Ubuntu
+
 ```bash
 docker run \
     --volume=/var/run/libvirt/libvirt-sock-ro:/var/run/libvirt/libvirt-sock-ro:Z \
@@ -17,9 +19,21 @@ docker run \
     virtkube/vadvisor:latest
 ```
 
+### RHEL/CentOS/Fedora
+
 vAdvisor can now be accessed on port `8181`. If you are using RHEL, CentOS or
 Fedora you need to add the `--privileged` flag because otherwise SELinux does
-not allow it to access the libvirt socket.
+not allow it to access the libvirt socket:
+
+```bash
+docker run \
+    --volume=/var/run/libvirt/libvirt-sock-ro:/var/run/libvirt/libvirt-sock-ro:Z \
+    --name vadvisor \
+    --publish 8181:8181 \
+    --detach=true \
+    --privileged \
+    virtkube/vadvisor:latest
+```
 
 ## Prometheus
 
@@ -77,6 +91,12 @@ The following query parameters are supported:
 |`shutdown_events`    |Include shutdown events                        | false             |
 |`pmsuspended_events` |Include power management suspended events      | false             |
 |`crashed_events`     |Include crash events                           | false             |
+
+For example to listen for all lifecycle events as they occure run
+
+```bash
+curl -N 'http://localhost:8181/api/v1.0/events?stream=true&all_events=true'
+```
 
 ### Specifications
 
