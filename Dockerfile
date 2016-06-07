@@ -27,6 +27,4 @@ RUN \
     rm -rf ~/.pip && \
     cd .. && rm -rf vAdvisor-$VERSION*
 
-ENV METRICS http://localhost:8181/metrics
-
 ENTRYPOINT [ "/bin/bash", "/entrypoint.sh" ]

@@ -105,3 +105,39 @@ all discovered VMs with their Libvirt XML specifcations translated into JSON.
 
 To query for a specific VM use the endpoint `/api/v1.0/specs/<id>` where `id`
 can either be the UUID or the name of a VM.
+
+## cAdvisor/Heapster
+
+The prometheus endpoint from vAdvisor can be reused be cAdvisor to collect all
+vAdvisor metrics as custom metrics. Then they are exposed by cAdvisor and
+heapster can collect them.
+
+To enable this feature you have to add to the vAdvisor docker image the
+metadata where cAdvisor can find a file which contains the metrics definition.
+
+A full docker run would look like this:
+
+```
+docker run \
+    --volume=/var/run/libvirt/libvirt-sock-ro:/var/run/libvirt/libvirt-sock-ro:Z \
+    --name vadvisor \
+    --publish 8181:8181 \
+    --detach=true \
+    --privileged \
+    --label io.cadvisor.metric.prometheus-vadvisor="/var/vadvisor/cadvisor_config.json" \
+    --volume cadvisor_config.json:/var/vadvisor/cadvisor_config.json \
+    virtkube/vadvisor:latest
+```
+The `cadvisor_config.json` should then contain a URL which is accessible from
+other containers or form the host. For instance in kubernetes, containers can
+access each other through localhost as long as they are in the same pod. In
+that case `cadvisor_config.json` looks like this:
+
+```json
+{
+    "endpoint" : "http://localhost:8181/metrics"
+}
+```
+
+In cas of docker networking substituting `localhost` with the container name
+should be enough.

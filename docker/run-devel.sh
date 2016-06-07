@@ -28,5 +28,4 @@ sudo docker run \
     --privileged=true \
     --net=testnet \
     --label io.cadvisor.metric.prometheus-vadvisor="/var/vadvisor/cadvisor_config.json" \
-    -e METRICS="http://vadvisor:8181/metrics" \
     virtkube/vadvisor:latest
