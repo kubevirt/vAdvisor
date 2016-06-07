@@ -192,7 +192,11 @@ def make_rest_app():
 
     def store_metrics():
         while True:
-            app.metricStore.put(app.collector.collect())
+            try:
+                app.metricStore.put(app.collector.collect())
+            except Exception as e:
+                logging.error(e)
+                sleep(5)
             sleep(1)
 
     Greenlet(store_metrics).start()
