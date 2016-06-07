@@ -1,4 +1,5 @@
 import six
+from datetime import datetime, timedelta
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 
 from ..virt.collector import Collector
@@ -76,6 +77,7 @@ class Counter(Metric):
 class LibvirtCollector:
 
     _vm = Tree(['uuid'], [
+        Gauge('vm_up', 'state', '0 if the VM is down, 1 if the VM is up and running, other states'),
         Subtree('cpu', [
             Counter('vm_cpu_time', 'cpu_time', 'Overall VM CPU time in milliseconds'),
             Counter('vm_cpu_system_time', 'system_time', 'Overall VM System CPU time in milliseconds'),
@@ -109,8 +111,10 @@ class LibvirtCollector:
         Counter('vm_cpu_total', 'cpu_time', 'Overall CPU time on the host CPU in milliseconds'),
     ])
 
-    def __init__(self, collector=Collector()):
+    def __init__(self, collector=Collector(), report_minutes=10):
         self.collector = collector
+        self.report_minutes = timedelta(minutes=report_minutes)
+        self._known_vms = {}
 
     def collect(self):
         # Get stats from libvirt
@@ -122,10 +126,17 @@ class LibvirtCollector:
             tree.reset()
 
         # Collect metrics
+        now = datetime.now()
         for domainStats in stats:
+            # VM status, we have a collection copy, convert state to a number
+            domainStats['state'] = 1 if domainStats['state'] == "Running" else 0
+
+            self._known_vms[domainStats['uuid']] = now
+
             # VM stats
             labels = [domainStats['uuid']]
             self._vm.process(labels, domainStats)
+
             # Networking stats
             for interface in domainStats['network']['interfaces']:
                 labels = [domainStats['uuid'], interface['name']]
@@ -138,6 +149,22 @@ class LibvirtCollector:
             for indx, cpu in enumerate(domainStats['cpu']['per_cpu_usage']):
                 labels = [domainStats['uuid'], str(indx)]
                 self._cpus.process(labels, cpu)
+
+        # Prometheus reports disappearing metrics for 5 minutes with the same
+        # value. Report disappeared VMs for 10 minutes as down to allow
+        # filtering out these stale metrics.
+        vms_to_delete = []
+        for uuid in self._known_vms:
+            # Already more than 10 minutes down, don't report the VM anymore
+            if self._known_vms[uuid] < now - self.report_minutes:
+                vms_to_delete.append(uuid)
+            # VM is down report it as down for the next 10 minutes
+            elif self._known_vms[uuid] < now:
+                labels = [uuid]
+                self._vm._elements['state'].process(labels, 0)
+
+        for uuid in vms_to_delete:
+            del self._known_vms[uuid]
 
         # Yield all collected metrics
         for tree in (self._vm, self._interfaces, self._disks, self._cpus):

@@ -28,6 +28,14 @@ live sample of all currently detected VMs will be returned. This is different
 to the metrics REST endpoint below where historical samples for the last minute
 are returned.
 
+Each VM has one metric called `vm_up` which is `1` if the VM is in `Running` state.
+If the VM is in any other state `vm_up` will report `0`.
+
+Further `vm_up` can be used to filter out stale metrics reported by prometheus
+since prometheus keep reporting disappeared metrics for another 5 minutes if
+the scrape target is still reachable. To achieve this `vm_up` reports `0` for
+another 10 minutes after a VM disappeard or was shut off. 
+
 ## REST-API
 
 ### Polling metrics
