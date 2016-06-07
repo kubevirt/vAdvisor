@@ -50,6 +50,7 @@ class Collector:
                 domainStats = {}
                 domainStats['uuid'] = domainUUID
                 domainStats['name'] = domainName
+                domainStats['state'] = domStateToString(domain.state()[0])
                 domainStats['memory'] = domain.memoryStats()
                 domainStats['cpu'] = {
                     "usage": domain.getCPUStats(True)[0],
@@ -62,3 +63,17 @@ class Collector:
                 domainStats['timestamp'] = datetime.utcnow()
                 stats.append(domainStats)
         return stats
+
+
+def domStateToString(state):
+    states = (
+        "Unknown",
+        "Running",
+        "Blocked",
+        "Paused",
+        "Shutdown",
+        "Shutoff",
+        "Crashed",
+        "PMSuspended"
+    )
+    return states[state]
