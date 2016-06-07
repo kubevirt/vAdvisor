@@ -18,12 +18,12 @@ docker run \
     --detach=true \
     virtkube/vadvisor:latest
 ```
+vAdvisor can now be accessed on port `8181`.
 
 ### RHEL/CentOS/Fedora
 
-vAdvisor can now be accessed on port `8181`. If you are using RHEL, CentOS or
-Fedora you need to add the `--privileged` flag because otherwise SELinux does
-not allow it to access the libvirt socket:
+If you are using RHEL, CentOS or Fedora you need to add the `--privileged` flag
+because otherwise SELinux does not allow it to access the libvirt socket:
 
 ```bash
 docker run \
