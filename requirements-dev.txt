@@ -1,11 +1,5 @@
-Flask
-libvirt-python
-prometheus_client
-six
-gevent >= 1.1.0
-wsgigzip >= 0.1.4
+-rrequirements.txt
 WebTest
 pytest
 pytest-cov
 freezegun
-python-dateutil
