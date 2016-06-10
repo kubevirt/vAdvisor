@@ -54,7 +54,7 @@ class Collector:
                 domainStats['memory'] = domain.memoryStats()
                 domainStats['cpu'] = {
                     "usage": domain.getCPUStats(True)[0],
-                    "per_cpu_usage": domain.getCPUStats(False),
+                    "per_cpu_usage": vCpuStats(domain),
                 }
                 domainStats['network'] = {
                     'interfaces': interfaces
@@ -63,6 +63,17 @@ class Collector:
                 domainStats['timestamp'] = datetime.utcnow()
                 stats.append(domainStats)
         return stats
+
+
+def vCpuStats(domain):
+    infos = domain.vcpus()[0]
+    stats = []
+    for cpu in infos:
+        stats.append({
+            'index': cpu[0],
+            'state': vCpuStateToString(cpu[1]),
+            'vcpu_time': cpu[2]})
+    return stats
 
 
 def domStateToString(state):
@@ -75,5 +86,14 @@ def domStateToString(state):
         "Shutoff",
         "Crashed",
         "PMSuspended"
+    )
+    return states[state]
+
+
+def vCpuStateToString(state):
+    states = (
+        "Offline",
+        "Running",
+        "Blocked"
     )
     return states[state]
