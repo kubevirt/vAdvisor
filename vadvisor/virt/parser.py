@@ -18,6 +18,9 @@ class GuestXmlParser:
         if tag == "devices":
             self.stack[-1][tag] = []
             self.stack.append(self.stack[-1][tag])
+        elif tag == "emulator":
+            self.stack[-2][tag] = attrib
+            self.stack.append(attrib)
         elif isinstance(self.stack[-1], dict):
             self.stack[-1][tag] = attrib
             self.stack.append(attrib)
