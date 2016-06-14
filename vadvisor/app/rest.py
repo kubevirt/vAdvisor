@@ -14,6 +14,7 @@ from prometheus_client import REGISTRY, generate_latest
 from wsgigzip import gzip
 
 from ..app.prometheus import LibvirtCollector
+from ..app.statsd import StatsdCollector
 from ..virt.collector import Collector
 from ..virt.conn import LibvirtConnection
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
@@ -86,6 +87,14 @@ def getAllVMStats():
     return Response(
         json.dumps(data, default=_datetime_serial),
         mimetype='application/json'
+    )
+
+
+@app.route('/statsd')
+def getStatsd():
+    return Response(
+        (x + "\n" for x in app.statsd.collect()),
+        mimetype='text/plain'
     )
 
 
@@ -186,6 +195,9 @@ def make_rest_app():
 
     # Register prometheus metrics
     REGISTRY.register(LibvirtCollector(app.collector))
+
+    # For statsd debugging
+    app.statsd = StatsdCollector(app.collector)
 
     # Collect metrics every second and store them in the metrics store
     app.metricStore = MetricStore()

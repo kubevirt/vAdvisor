@@ -1,47 +1,8 @@
-import six
 from datetime import datetime, timedelta
 from prometheus_client.core import GaugeMetricFamily, CounterMetricFamily
 
 from ..virt.collector import Collector
-
-
-class Subtree:
-
-    def __init__(self, field, elements):
-        self._elements = {}
-        for element in elements:
-            self._elements[element.field] = element
-        self.field = field
-
-    def process(self, labels, domainStats):
-        for field, element in six.iteritems(self._elements):
-            if field in domainStats:
-                element.process(labels, domainStats[field])
-
-    def reset(self, label_keys):
-        for _, element in six.iteritems(self._elements):
-            element.reset(label_keys)
-
-    def expose(self):
-        for _, element in six.iteritems(self._elements):
-            for metric in element.expose():
-                yield metric
-
-
-class Tree(Subtree):
-
-    def __init__(self, label_keys, elements):
-        Subtree.__init__(self, None, elements)
-        self._label_keys = label_keys
-
-    def process(self, labels, domainStats):
-        for field, element in six.iteritems(self._elements):
-            if field in domainStats:
-                element.process(labels, domainStats[field])
-
-    def reset(self):
-        for _, element in six.iteritems(self._elements):
-            element.reset(self._label_keys)
+from .tree import Tree, Subtree
 
 
 class Metric:
@@ -170,3 +131,18 @@ class LibvirtCollector:
         for tree in (self._vm, self._interfaces, self._disks, self._cpus):
             for metric in tree.expose():
                 yield metric
+
+
+class StatdMetric:
+
+    def __init__(self, name, field):
+        self.field = field
+        self.name = name
+        self.metric = None
+
+    def reset(self, label_keys):
+        self.metric = []
+
+    def expose(self):
+        for metric in self.metric:
+            yield metric
