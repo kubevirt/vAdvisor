@@ -141,3 +141,26 @@ that case `cadvisor_config.json` looks like this:
 
 In cas of docker networking substituting `localhost` with the container name
 should be enough.
+
+## StatsD
+
+To export the VM metrics to a StatsD compatible agent you can use the
+commandline arguments `--statsd-host`, `--statsd-port` and `--statsd-interval`.
+As soon as you specify a host, vAdvisor will start exporting the metrics.
+
+This configuration
+```bash
+docker run \
+    --volume=/var/run/libvirt/libvirt-sock-ro:/var/run/libvirt/libvirt-sock-ro:Z \
+    --name vadvisor \
+    --publish 8181:8181 \
+    --detach=true \
+    --privileged \
+    virtkube/vadvisor:latest \
+    --statsd-host 192.168.0.5
+    --statsd-port 8125
+    --statsd-interval 15
+```
+will export VM metrics every `15` seconds to the statsd server at `192.168.0.5:5145`.
+
+
