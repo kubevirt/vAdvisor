@@ -108,7 +108,6 @@ class LibvirtCollector:
 
     _cpus = Tree(['uuid', 'cpu'], [
         Counter('vm_vcpu_milliseconds_total', 'vcpu_time', 'Overall CPU time on the virtual CPU in milliseconds'),
-        Counter('vm_cpu_milliseconds_total', 'cpu_time', 'Overall CPU time on the host CPU in milliseconds'),
     ])
 
     def __init__(self, collector=Collector(), report_minutes=10):
