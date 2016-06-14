@@ -16,7 +16,6 @@ from wsgigzip import gzip
 from ..app.prometheus import LibvirtCollector
 from ..app.statsd import StatsdCollector
 from ..virt.collector import Collector
-from ..virt.conn import LibvirtConnection
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
 from ..virt.parser import parse_domain_xml
 from ..store.event import InMemoryStore as EventStore
@@ -166,7 +165,7 @@ def getPromMetrics():
     return prom_metrics
 
 
-def make_rest_app():
+def make_rest_app(libvirtConnection):
     # set up logging
     if not app.debug:
         stream_handler = logging.StreamHandler()
@@ -190,7 +189,7 @@ def make_rest_app():
     Greenlet(store_events).start()
 
     # Create metric collector
-    app.conn = LibvirtConnection()
+    app.conn = libvirtConnection
     app.collector = Collector(app.conn)
 
     # Register prometheus metrics
