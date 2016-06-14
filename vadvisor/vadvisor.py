@@ -16,11 +16,16 @@ def run():
     parser.add_argument('--statsd-host', type=str, required=False, help="Push VM metrics to this statsd endpoint")
     parser.add_argument('--statsd-port', type=int, default=8125, help="Push VM metrics to this statsd endpoint")
     parser.add_argument('--statsd-interval', type=int, default=15, help="Statd push interval in seconds")
+    parser.add_argument('-v', '--verbose', action='store_true', default=False)
     args = parser.parse_args()
+
+    logging.getLogger().setLevel(level=logging.INFO)
+    if args.verbose:
+        logging.getLogger('vadvisor').setLevel(level=logging.DEBUG)
     conn = LibvirtConnection()
     httpd = pywsgi.WSGIServer(('', args.port), make_rest_app(conn))
     if args.statsd_host:
-        logging.info("Will push metrics to statsd endpoint %s:%s every %s seconds.", args.statsd_host, args.statsd_port, args.statsd_interval)
+        logging.getLogger('vadvisor').info("Will push metrics to statsd endpoint %s:%s every %s seconds.", args.statsd_host, args.statsd_port, args.statsd_interval)
 
         def push_metrics():
             collector = StatsdCollector(Collector(conn))

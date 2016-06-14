@@ -166,12 +166,6 @@ def getPromMetrics():
 
 
 def make_rest_app(libvirtConnection):
-    # set up logging
-    if not app.debug:
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(stream_handler)
-
     # start libvirt event broker
     broker = LibvirtEventBroker()
     Greenlet(broker.run).start()
