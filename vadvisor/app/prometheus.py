@@ -79,23 +79,23 @@ class LibvirtCollector:
     _vm = Tree(['uuid'], [
         Gauge('vm_up', 'state', '0 if the VM is down, 1 if the VM is up and running, other states'),
         Subtree('cpu', [
-            Counter('vm_cpu_time', 'cpu_time', 'Overall VM CPU time in milliseconds'),
-            Counter('vm_cpu_system_time', 'system_time', 'Overall VM System CPU time in milliseconds'),
-            Counter('vm_cpu_user_time', 'user_time', 'Overall VM User CPU time in milliseconds')
+            Counter('vm_cpu_milliseconds_total', 'cpu_time', 'Overall VM CPU time in milliseconds'),
+            Counter('vm_cpu_system_milliseconds_total', 'system_time', 'Overall VM System CPU time in milliseconds'),
+            Counter('vm_cpu_user_milliseconds_total', 'user_time', 'Overall VM User CPU time in milliseconds')
         ]),
         Subtree('memory', [
-            Gauge('vm_memory_actual', 'actual', "VM Memory in bytes"),
+            Gauge('vm_memory_bytes', 'actual', "VM Memory in bytes"),
         ])
     ])
 
     _interfaces = Tree(['uuid', 'interface'], [
         Counter('vm_network_receive_bytes_total', 'rx_bytes', 'Cumulative count of bytes received'),
         Counter('vm_network_receive_packets_total', 'rx_packets', 'Cumulative count of packets received'),
-        Counter('vm_network_receive_packages_dropped_total', 'rx_dropped', 'Cumulative count of packages dropped while receiving'),
+        Counter('vm_network_receive_dropped_packets_total', 'rx_dropped', 'Cumulative count of packets dropped while receiving'),
         Counter('vm_network_receive_errors_total', 'rx_errors', 'Cumulative count of errors encountered while receiving'),
         Counter('vm_network_transmit_bytes_total', 'tx_bytes', 'Cumulative count of bytes transmitted'),
         Counter('vm_network_transmit_packets_total', 'tx_packets', 'Cumulative count of packets transmitted'),
-        Counter('vm_network_transmit_packages_dropped_total', 'tx_dropped', 'Cumulative count of packages dropped while transmitting'),
+        Counter('vm_network_transmit_dropped_packets_total', 'tx_dropped', 'Cumulative count of packets dropped while transmitting'),
         Counter('vm_network_transmit_errors_total', 'tx_errors', 'Cumulative count of errors encountered while transmitting'),
     ])
 
@@ -107,8 +107,8 @@ class LibvirtCollector:
     ])
 
     _cpus = Tree(['uuid', 'cpu'], [
-        Counter('vm_vcpu_total', 'vcpu_time', 'Overall CPU time on the virtual CPU in milliseconds'),
-        Counter('vm_cpu_total', 'cpu_time', 'Overall CPU time on the host CPU in milliseconds'),
+        Counter('vm_vcpu_milliseconds_total', 'vcpu_time', 'Overall CPU time on the virtual CPU in milliseconds'),
+        Counter('vm_cpu_milliseconds_total', 'cpu_time', 'Overall CPU time on the host CPU in milliseconds'),
     ])
 
     def __init__(self, collector=Collector(), report_minutes=10):
