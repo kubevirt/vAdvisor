@@ -14,8 +14,8 @@ from prometheus_client import REGISTRY, generate_latest
 from wsgigzip import gzip
 
 from ..app.prometheus import LibvirtCollector
+from ..app.statsd import StatsdCollector
 from ..virt.collector import Collector
-from ..virt.conn import LibvirtConnection
 from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
 from ..virt.parser import parse_domain_xml
 from ..store.event import InMemoryStore as EventStore
@@ -89,6 +89,14 @@ def getAllVMStats():
     )
 
 
+@app.route('/statsd')
+def getStatsd():
+    return Response(
+        (x + "\n" for x in app.statsd.collect()),
+        mimetype='text/plain'
+    )
+
+
 @app.route('/api/v1.0/stats/<uuid>')
 def getVMStats(uuid):
     data = app.metricStore.get(uuid)
@@ -157,13 +165,7 @@ def getPromMetrics():
     return prom_metrics
 
 
-def make_rest_app():
-    # set up logging
-    if not app.debug:
-        stream_handler = logging.StreamHandler()
-        stream_handler.setLevel(logging.ERROR)
-        app.logger.addHandler(stream_handler)
-
+def make_rest_app(libvirtConnection):
     # start libvirt event broker
     broker = LibvirtEventBroker()
     Greenlet(broker.run).start()
@@ -181,11 +183,14 @@ def make_rest_app():
     Greenlet(store_events).start()
 
     # Create metric collector
-    app.conn = LibvirtConnection()
+    app.conn = libvirtConnection
     app.collector = Collector(app.conn)
 
     # Register prometheus metrics
     REGISTRY.register(LibvirtCollector(app.collector))
+
+    # For statsd debugging
+    app.statsd = StatsdCollector(app.collector)
 
     # Collect metrics every second and store them in the metrics store
     app.metricStore = MetricStore()
