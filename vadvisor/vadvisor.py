@@ -34,7 +34,7 @@ def run():
                     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                     for line in collector.collect():
                         socket.wait_write(sock.fileno())
-                        sock.sendto(six.b(line + "\n"), (args.statsd_host, args.statsd_port))
+                        sock.sendto(six.b(line), (args.statsd_host, args.statsd_port))
                 except Exception as e:
                     logging.error(e)
                 sleep(args.statsd_interval)
