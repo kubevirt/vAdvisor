@@ -72,7 +72,7 @@ def vCpuStats(domain):
         stats.append({
             'index': cpu[0],
             'state': vCpuStateToString(cpu[1]),
-            'vcpu_time': cpu[2]})
+            'vcpu_time': cpu[2] / 1000000})
     return stats
 
 
