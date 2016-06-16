@@ -41,9 +41,9 @@ class StatsdCollector:
     _vm = Tree(['uuid'], [
         Gauge('up', 'state'),
         Subtree('cpu', [
-            Timer('cpu.total', 'cpu_time'),
-            Timer('cpu.system.total', 'system_time'),
-            Timer('cpu.user.total', 'user_time')
+            Counter('cpu.total', 'cpu_time'),
+            Counter('cpu.system.total', 'system_time'),
+            Counter('cpu.user.total', 'user_time')
         ]),
         Subtree('memory', [
             Gauge('memory.bytes', 'actual'),
@@ -69,8 +69,8 @@ class StatsdCollector:
     ])
 
     _cpus = Tree(['uuid', 'cpu'], [
-        Timer('vcpu.total', 'vcpu_time'),
-        Timer('cpu.total', 'cpu_time'),
+        Counter('vcpu.total', 'vcpu_time'),
+        Counter('cpu.total', 'cpu_time'),
     ])
 
     def collect(self):
