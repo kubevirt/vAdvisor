@@ -9,10 +9,10 @@ class Subtree:
             self._elements[element.field] = element
         self.field = field
 
-    def process(self, labels, domainStats):
+    def process(self, labels, domainStats, timestamp=None):
         for field, element in six.iteritems(self._elements):
             if field in domainStats:
-                element.process(labels, domainStats[field])
+                element.process(labels, domainStats[field], timestamp)
 
     def reset(self, label_keys):
         for _, element in six.iteritems(self._elements):
@@ -30,10 +30,10 @@ class Tree(Subtree):
         Subtree.__init__(self, None, elements)
         self._label_keys = label_keys
 
-    def process(self, labels, domainStats):
+    def process(self, labels, domainStats, timestamp=None):
         for field, element in six.iteritems(self._elements):
             if field in domainStats:
-                element.process(labels, domainStats[field])
+                element.process(labels, domainStats[field], timestamp)
 
     def reset(self):
         for _, element in six.iteritems(self._elements):

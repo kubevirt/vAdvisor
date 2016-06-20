@@ -19,7 +19,7 @@ class Metric:
 
 class Gauge(Metric):
 
-    def process(self, labels, value):
+    def process(self, labels, value, timestamp=None):
         self.metric.add_metric(labels, value)
 
     def reset(self, label_keys):
@@ -28,7 +28,7 @@ class Gauge(Metric):
 
 class Counter(Metric):
 
-    def process(self, labels, value):
+    def process(self, labels, value, timestamp=None):
         self.metric.add_metric(labels, value)
 
     def reset(self, label_keys):
