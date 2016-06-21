@@ -43,7 +43,7 @@ def run():
                         socket.wait_write(sock.fileno())
                         sock.sendto(six.b(line), (args.statsd_host, args.statsd_port))
                 except Exception as e:
-                    logging.error(e)
+                    logging.getLogger('vadvisor').error(e)
                 sleep(args.statsd_interval)
         Greenlet(push_statsd_metrics).start()
 
@@ -56,15 +56,14 @@ def run():
             while True:
                 try:
                     for metrics in collector.collect():
-                        print(metrics)
                         response = http.post(
                             '/hawkular/metrics/' + metrics[0] + '/raw',
                             json.dumps([metrics[1]]),
                             headers={"Content-Type": "application/json", "Hawkular-Tenant": args.hawkular_tenant}
                         )
-                        print(response)
+                        logging.getLogger('vadvisor').debug(response)
                 except Exception as e:
-                    logging.error(e)
+                    logging.getLogger('vadvisor').error(e)
                 sleep(args.hawkular_interval)
         Greenlet(push_hawkular_metrics).start()
     httpd.serve_forever()
