@@ -1,4 +1,5 @@
 import argparse
+import collections
 from gevent import pywsgi
 from gevent import Greenlet, socket, sleep
 import logging
@@ -55,10 +56,14 @@ def run():
             http = HTTPClient(args.hawkular_host, args.hawkular_port)
             while True:
                 try:
+                    hawkular_metrics = collections.defaultdict(list)
                     for metrics in collector.collect():
+                        hawkular_metrics[metrics[0]].append(metrics[1])
+
+                    for metrics_type, metrics in hawkular_metrics:
                         response = http.post(
-                            '/hawkular/metrics/' + metrics[0] + '/raw',
-                            json.dumps([metrics[1]]),
+                            '/hawkular/metrics/' + metrics_type + '/raw',
+                            json.dumps(metrics),
                             headers={"Content-Type": "application/json", "Hawkular-Tenant": args.hawkular_tenant}
                         )
                         logging.getLogger('vadvisor').debug(response)
