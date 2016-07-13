@@ -41,7 +41,7 @@ def test_empty_store():
 
 
 @freeze_time("2012-01-14 03:02:00")
-def test_expire_on_get(expired_store):
+def test_dont_get_old_without_expire(expired_store):
     expired_store.get()
     assert expired_store.get() == []
 

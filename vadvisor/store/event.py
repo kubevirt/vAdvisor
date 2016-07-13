@@ -27,11 +27,13 @@ class InMemoryStore:
 
     def get(self, start_time=None, stop_time=None, elements=10):
         now = datetime.utcnow()
+        lower_bound = now - timedelta(seconds=self.seconds)
         if not start_time:
             start_time = datetime(1970, 1, 1, 1)
         if not stop_time:
             stop_time = now
-        self._expire(now)
+        if lower_bound > start_time:
+            start_time = lower_bound
         events = []
         found = 0
         for event in self.deque:
@@ -71,26 +73,27 @@ class LevelDBStore:
         self.seconds = seconds
         self.db = plyvel.DB(path, create_if_missing=True)
         self.log = logging.getLogger('vadvisor')
+        self.cnt = 0
 
     def get(self, start_time=None, stop_time=None, elements=10):
-        print(start_time)
-        print(stop_time)
+        now = _now()
+        lower_bound = now - self.seconds
         if not start_time:
             start_time = 0
         else:
             start_time = _convert_time(start_time)
         if not stop_time:
-            stop_time = _now()
+            stop_time = now
         else:
             stop_time = _convert_time(stop_time)
+        if lower_bound > start_time:
+            start_time = lower_bound
         events = []
         found = 0
-        print(start_time)
-        print(stop_time)
+        self.log.debug("Asking for range %s - %s", start_time, stop_time)
         for key, value in self.db.iterator(start=_pack(start_time), stop=_pack(stop_time), include_stop=False):
             self.log.debug("Fetched %s", _unpack(key))
-            event = json.loads(value)
-            event['timestamp'] = parser.parse(event['timestamp'])
+            event = _loads(value)
             events.append(event)
             found += 1
             if elements and found >= elements:
@@ -112,8 +115,15 @@ class LevelDBStore:
     def put(self, data):
         now = _now()
         self.log.debug("Adding %s", now)
-        self.db.put(_pack(now), json.dumps(data, default=datetime_serial), sync=True)
+        self.db.put(_pack(now) + self._postfix(), _dumps(data), sync=True)
         self.expire()
+
+    def _postfix(self):
+        self.cnt = (self.cnt + 1) % 1000
+        if six.PY3:
+            return bytes(str(self.cnt), "utf-8")
+        else:
+            return bytes(str(self.cnt))
 
 
 def _pack(timestamp):
@@ -121,6 +131,20 @@ def _pack(timestamp):
         return bytes(str(int(timestamp)), "utf-8")
     else:
         return bytes(long(timestamp))
+
+
+def _dumps(data):
+    if six.PY3:
+        return bytes(json.dumps([data], default=datetime_serial), "utf-8")
+    else:
+        return json.dumps([data], default=datetime_serial)
+
+
+def _loads(data):
+    if six.PY3:
+        return json.loads(str(data, "utf-8"))[0]
+    else:
+        return json.loads(data)[0]
 
 
 def _unpack(timestamp):
