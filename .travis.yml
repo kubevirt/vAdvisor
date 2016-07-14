@@ -8,7 +8,7 @@ script: python setup.py test --addopts '--cov vadvisor'
 matrix:
   include:
     - python: "2.7"
-      env: DEPS="pkg-config python-dev libvirt-dev"
+      env: DEPS="pkg-config python-dev libvirt-dev libleveldb-dev"
     - python: "3.4"
-      env: DEPS="pkg-config libvirt-dev python3-dev"
+      env: DEPS="pkg-config libvirt-dev python3-dev libleveldb-dev"
 

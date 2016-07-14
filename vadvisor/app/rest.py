@@ -20,6 +20,7 @@ from ..virt.event import LibvirtEventBroker, LIFECYCLE_EVENTS
 from ..virt.parser import parse_domain_xml
 from ..store.event import InMemoryStore as EventStore
 from ..store.collector import InMemoryStore as MetricStore
+from ..store.event import datetime_serial
 
 
 app = Flask(__name__)
@@ -41,7 +42,7 @@ def getAllVMSpecs():
                 data.append(parse_domain_xml(domain.XMLDesc()))
 
     return Response(
-        json.dumps(data, default=_datetime_serial),
+        json.dumps(data, default=datetime_serial),
         mimetype='application/json'
     )
 
@@ -66,7 +67,7 @@ def getVMSpecs(id):
         data = parse_domain_xml(domain.XMLDesc())
 
     return Response(
-        json.dumps(data, default=_datetime_serial),
+        json.dumps(data, default=datetime_serial),
         mimetype='application/json'
     )
 
@@ -84,7 +85,7 @@ def getAllVMStats():
         data = app.metricStore.get()
 
     return Response(
-        json.dumps(data, default=_datetime_serial),
+        json.dumps(data, default=datetime_serial),
         mimetype='application/json'
     )
 
@@ -103,7 +104,7 @@ def getVMStats(uuid):
     if not data:
         abort(404)
     return Response(
-        json.dumps(data, default=_datetime_serial),
+        json.dumps(data, default=datetime_serial),
         mimetype='application/json'
     )
 
@@ -120,7 +121,7 @@ def getVmEvents():
             events = app.eventStore.get(start_time, stop_time, elements)
             for event in events:
                 if 'all' in event_filter or event["event_type"] in event_filter:
-                    yield json.dumps(event, default=_datetime_serial) + '\n'
+                    yield json.dumps(event, default=datetime_serial) + '\n'
         return Response(generator(), mimetype='application/json')
 
     def stream(environ, start_response):
@@ -132,7 +133,7 @@ def getVmEvents():
             try:
                 for item in body:
                     if 'all' in event_filter or item["event_type"] in event_filter:
-                        yield json.dumps(item, default=_datetime_serial) + '\n'
+                        yield json.dumps(item, default=datetime_serial) + '\n'
             except Exception as e:
                 app.eventBroker.unsubscribe(body)
                 raise e
@@ -165,14 +166,14 @@ def getPromMetrics():
     return prom_metrics
 
 
-def make_rest_app(libvirtConnection):
+def make_rest_app(libvirtConnection, eventStore=EventStore()):
     # start libvirt event broker
     broker = LibvirtEventBroker()
     Greenlet(broker.run).start()
     app.eventBroker = broker
 
     # Attach event store to broker
-    app.eventStore = EventStore()
+    app.eventStore = eventStore
 
     def store_events():
         q = queue.Queue()
@@ -209,12 +210,3 @@ def make_rest_app(libvirtConnection):
     # Add gzip support
     mime_types = ['application/json', 'text/plain']
     return gzip(mime_types=mime_types, compress_level=9)(app)
-
-
-def _datetime_serial(obj):
-
-    if isinstance(obj, datetime):
-        # We should have all timestamps in utc. If not we have a problem
-        serial = obj.isoformat() + "Z"
-        return serial
-    raise TypeError("Type not serializable")
