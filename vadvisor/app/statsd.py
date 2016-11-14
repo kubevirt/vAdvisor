@@ -16,7 +16,7 @@ class Metric:
         for metric in self.metric:
             yield metric
 
-    def process(self, labels, value):
+    def process(self, labels, value, timestamp=None):
         name = ".".join(("vm", ".".join(labels), self.name))
         self.metric.append("%s:%s|%s" % (name, str(value), self._abr))
 
