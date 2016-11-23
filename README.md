@@ -3,7 +3,7 @@
 VM monitoring application based on WSGI, libvirt, flask and gevent, inspired by cAdvisor. 
 
 [![Build Status](https://travis-ci.org/kubevirt/vAdvisor.svg?branch=master)](https://travis-ci.org/kubevirt/vAdvisor)
-[![Coveralls](https://img.shields.io/coveralls/kubevirt/vAdvisor.svg?maxAge=2592000)]()
+[![Coverage Status](https://coveralls.io/repos/github/kubevirt/vAdvisor/badge.svg?branch=master)](https://coveralls.io/github/kubevirt/vAdvisor?branch=master)
 
 ## Run it
 
